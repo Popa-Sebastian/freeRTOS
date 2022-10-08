@@ -47,13 +47,13 @@ extern "C" {
 settings within this file.  Therefore, to ensure all the functions in port.c
 build, this configuration file has all options turned on. */
 
-#define configUSE_PREEMPTION					1
+#define configUSE_PREEMPTION					0
 #define configTICK_RATE_HZ						( 1000 )
 #define configUSE_PORT_OPTIMISED_TASK_SELECTION	1
 #define configUSE_QUEUE_SETS					1
 #define configUSE_IDLE_HOOK						0
 #define configUSE_TICK_HOOK						0
-#define configCPU_CLOCK_HZ						48000000
+#define configCPU_CLOCK_HZ						80000000
 #define configMAX_PRIORITIES					( 5 )
 #define configMINIMAL_STACK_SIZE				( ( unsigned short ) 256 )
 #define configTOTAL_HEAP_SIZE					( ( size_t ) ( 16 * 1024 ) )
@@ -72,7 +72,7 @@ build, this configuration file has all options turned on. */
 #define configNUM_THREAD_LOCAL_STORAGE_POINTERS	2
 
 /* This demo shows the MPU being used without any dynamic memory allocation. */
-#define configSUPPORT_STATIC_ALLOCATION			1
+#define configSUPPORT_STATIC_ALLOCATION			0
 #define configSUPPORT_DYNAMIC_ALLOCATION		1
 
 /* Run time stats gathering definitions. */
