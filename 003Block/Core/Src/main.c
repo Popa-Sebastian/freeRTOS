@@ -237,28 +237,34 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 static void ledg_handler(void *parameters)
 {
+    TickType_t last_wakeup_time = xTaskGetTickCount();
+
     while(1)
     {
         HAL_GPIO_TogglePin(LEDG_GPIO_Port, LEDG_Pin);
-        HAL_Delay(1000);
+        vTaskDelayUntil(&last_wakeup_time, pdMS_TO_TICKS(1000));
     }
 }
 
 static void ledy_handler(void *parameters)
 {
+    TickType_t last_wakeup_time = xTaskGetTickCount();
+
     while(1)
     {
         HAL_GPIO_TogglePin(LEDY_GPIO_Port, LEDY_Pin);
-        HAL_Delay(800);
+        vTaskDelayUntil(&last_wakeup_time, pdMS_TO_TICKS(800));
     }
 }
 
 static void ledr_handler(void *parameters)
 {
+    TickType_t last_wakeup_time = xTaskGetTickCount();
+
     while(1)
     {
         HAL_GPIO_TogglePin(LEDR_GPIO_Port, LEDR_Pin);
-        HAL_Delay(400);
+        vTaskDelayUntil(&last_wakeup_time, pdMS_TO_TICKS(400));
     }
 }
 /* USER CODE END 4 */
