@@ -62,6 +62,12 @@ void Error_Handler(void);
 #define B1_GPIO_Port GPIOC
 #define MCO_Pin GPIO_PIN_0
 #define MCO_GPIO_Port GPIOH
+#define LEDR_Pin GPIO_PIN_0
+#define LEDR_GPIO_Port GPIOC
+#define LEDY_Pin GPIO_PIN_1
+#define LEDY_GPIO_Port GPIOC
+#define LEDG_Pin GPIO_PIN_2
+#define LEDG_GPIO_Port GPIOC
 #define USART_TX_Pin GPIO_PIN_2
 #define USART_TX_GPIO_Port GPIOA
 #define USART_RX_Pin GPIO_PIN_3
