@@ -47,7 +47,7 @@ extern "C" {
 settings within this file.  Therefore, to ensure all the functions in port.c
 build, this configuration file has all options turned on. */
 
-#define configUSE_PREEMPTION					0
+#define configUSE_PREEMPTION					1
 #define configTICK_RATE_HZ						( 1000 )
 #define configUSE_PORT_OPTIMISED_TASK_SELECTION	1
 #define configUSE_QUEUE_SETS					1

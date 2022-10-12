@@ -51,8 +51,9 @@
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 /* USER CODE BEGIN PFP */
-static void task1_handler(void *parameters);
-static void task2_handler(void *parameters);
+static void ledr_handler(void *parameters);
+static void ledy_handler(void *parameters);
+static void ledg_handler(void *parameters);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -91,12 +92,16 @@ int main(void)
   /* USER CODE BEGIN 2 */
   TaskHandle_t task1_handle;
   TaskHandle_t task2_handle;
+  TaskHandle_t task3_handle;
   BaseType_t status;
 
-  status = xTaskCreate(task1_handler, "Task-1", 200, "Hello world from Task-1", 2, &task1_handle);
+  status = xTaskCreate(ledr_handler, "LEDR", 200, NULL, 2, &task1_handle);
   configASSERT(status == pdPASS);
 
-  status = xTaskCreate(task2_handler, "Task-2", 200, "Hello world from Task-2", 2, &task2_handle);
+  status = xTaskCreate(ledy_handler, "LEDY", 200, NULL, 2, &task2_handle);
+  configASSERT(status == pdPASS);
+
+  status = xTaskCreate(ledg_handler, "LEDG", 200, NULL, 2, &task3_handle);
   configASSERT(status == pdPASS);
 
   // Start scheduler
@@ -178,6 +183,9 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOC, LEDR_Pin|LEDY_Pin|LEDG_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOA, SMPS_EN_Pin|SMPS_V1_Pin|SMPS_SW_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
@@ -188,6 +196,13 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : LEDR_Pin LEDY_Pin LEDG_Pin */
+  GPIO_InitStruct.Pin = LEDR_Pin|LEDY_Pin|LEDG_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /*Configure GPIO pins : USART_TX_Pin USART_RX_Pin */
   GPIO_InitStruct.Pin = USART_TX_Pin|USART_RX_Pin;
@@ -220,21 +235,30 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-static void task1_handler(void *parameters)
+static void ledg_handler(void *parameters)
 {
     while(1)
     {
-        printf("\n%s", (char*)parameters);
-        taskYIELD();
+        HAL_GPIO_TogglePin(LEDG_GPIO_Port, LEDG_Pin);
+        HAL_Delay(1000);
     }
 }
 
-static void task2_handler(void *parameters)
+static void ledy_handler(void *parameters)
 {
     while(1)
     {
-        printf("\n%s", (char*)parameters);
-        taskYIELD();
+        HAL_GPIO_TogglePin(LEDY_GPIO_Port, LEDY_Pin);
+        HAL_Delay(800);
+    }
+}
+
+static void ledr_handler(void *parameters)
+{
+    while(1)
+    {
+        HAL_GPIO_TogglePin(LEDR_GPIO_Port, LEDR_Pin);
+        HAL_Delay(400);
     }
 }
 /* USER CODE END 4 */
