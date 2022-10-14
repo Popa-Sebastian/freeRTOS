@@ -44,7 +44,10 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+TaskHandle_t _ledr_task_handle;
+TaskHandle_t _ledy_task_handle;
+TaskHandle_t _ledg_task_handle;
+TaskHandle_t _button_task_handle;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -54,6 +57,7 @@ static void MX_GPIO_Init(void);
 static void ledr_handler(void *parameters);
 static void ledy_handler(void *parameters);
 static void ledg_handler(void *parameters);
+static void button_handler(void *parameters);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -90,18 +94,18 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   /* USER CODE BEGIN 2 */
-  TaskHandle_t task1_handle;
-  TaskHandle_t task2_handle;
-  TaskHandle_t task3_handle;
   BaseType_t status;
 
-  status = xTaskCreate(ledr_handler, "LEDR", 200, NULL, 2, &task1_handle);
+  status = xTaskCreate(ledr_handler, "LEDR", 200, NULL, 2, &_ledr_task_handle);
   configASSERT(status == pdPASS);
 
-  status = xTaskCreate(ledy_handler, "LEDY", 200, NULL, 2, &task2_handle);
+  status = xTaskCreate(ledy_handler, "LEDY", 200, NULL, 2, &_ledy_task_handle);
   configASSERT(status == pdPASS);
 
-  status = xTaskCreate(ledg_handler, "LEDG", 200, NULL, 2, &task3_handle);
+  status = xTaskCreate(ledg_handler, "LEDG", 200, NULL, 2, &_ledg_task_handle);
+  configASSERT(status == pdPASS);
+
+  status = xTaskCreate(button_handler, "BUTTON", 200, NULL, 2, &_button_task_handle);
   configASSERT(status == pdPASS);
 
   // Start scheduler
@@ -267,6 +271,15 @@ static void ledr_handler(void *parameters)
         vTaskDelayUntil(&last_wakeup_time, pdMS_TO_TICKS(400));
     }
 }
+
+static void button_handler(void *parameters)
+{
+    while(1)
+    {
+
+    }
+}
+
 /* USER CODE END 4 */
 
  /**
