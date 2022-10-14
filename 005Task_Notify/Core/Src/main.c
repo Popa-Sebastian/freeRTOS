@@ -48,6 +48,8 @@ TaskHandle_t _ledr_task_handle;
 TaskHandle_t _ledy_task_handle;
 TaskHandle_t _ledg_task_handle;
 TaskHandle_t _button_task_handle;
+
+TaskHandle_t volatile _next_task_handle = NULL;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -95,17 +97,18 @@ int main(void)
   MX_GPIO_Init();
   /* USER CODE BEGIN 2 */
   BaseType_t status;
-
-  status = xTaskCreate(ledr_handler, "LEDR", 200, NULL, 2, &_ledr_task_handle);
+  status = xTaskCreate(ledg_handler, "LEDG", 200, NULL, 3, &_ledg_task_handle);
   configASSERT(status == pdPASS);
+
+  _next_task_handle = _ledg_task_handle;
 
   status = xTaskCreate(ledy_handler, "LEDY", 200, NULL, 2, &_ledy_task_handle);
   configASSERT(status == pdPASS);
 
-  status = xTaskCreate(ledg_handler, "LEDG", 200, NULL, 2, &_ledg_task_handle);
+  status = xTaskCreate(ledr_handler, "LEDR", 200, NULL, 1, &_ledr_task_handle);
   configASSERT(status == pdPASS);
 
-  status = xTaskCreate(button_handler, "BUTTON", 200, NULL, 2, &_button_task_handle);
+  status = xTaskCreate(button_handler, "BUTTON", 200, NULL, 4, &_button_task_handle);
   configASSERT(status == pdPASS);
 
   // Start scheduler
@@ -241,42 +244,93 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 static void ledg_handler(void *parameters)
 {
-    TickType_t last_wakeup_time = xTaskGetTickCount();
+    BaseType_t status;
 
     while(1)
     {
         HAL_GPIO_TogglePin(LEDG_GPIO_Port, LEDG_Pin);
-        vTaskDelayUntil(&last_wakeup_time, pdMS_TO_TICKS(1000));
+        status = xTaskNotifyWait(0, 0, NULL, pdMS_TO_TICKS(1000));
+        if (status == pdTRUE)
+        {
+            vTaskSuspendAll();
+            _next_task_handle = _ledy_task_handle;
+            xTaskResumeAll();
+
+            HAL_GPIO_WritePin(LEDG_GPIO_Port, LEDG_Pin, GPIO_PIN_SET);
+            vTaskSuspend(NULL); // self suspend
+        }
     }
 }
 
 static void ledy_handler(void *parameters)
 {
-    TickType_t last_wakeup_time = xTaskGetTickCount();
+    BaseType_t status;
 
     while(1)
     {
         HAL_GPIO_TogglePin(LEDY_GPIO_Port, LEDY_Pin);
-        vTaskDelayUntil(&last_wakeup_time, pdMS_TO_TICKS(800));
+        status = xTaskNotifyWait(0, 0, NULL, pdMS_TO_TICKS(800));
+        if (status == pdTRUE)
+        {
+            vTaskSuspendAll();
+            _next_task_handle = _ledr_task_handle;
+            xTaskResumeAll();
+
+            HAL_GPIO_WritePin(LEDY_GPIO_Port, LEDY_Pin, GPIO_PIN_SET);
+            vTaskSuspend(NULL); // self suspend
+        }
     }
 }
 
 static void ledr_handler(void *parameters)
 {
-    TickType_t last_wakeup_time = xTaskGetTickCount();
+    BaseType_t status;
 
     while(1)
     {
         HAL_GPIO_TogglePin(LEDR_GPIO_Port, LEDR_Pin);
-        vTaskDelayUntil(&last_wakeup_time, pdMS_TO_TICKS(400));
+        status = xTaskNotifyWait(0, 0, NULL, pdMS_TO_TICKS(400));
+        if (status == pdTRUE)
+        {
+            vTaskSuspendAll();
+            _next_task_handle = NULL;
+            xTaskResumeAll();
+
+            HAL_GPIO_WritePin(LEDR_GPIO_Port, LEDR_Pin, GPIO_PIN_SET);
+            vTaskSuspend(NULL); // self suspend
+        }
     }
 }
 
 static void button_handler(void *parameters)
 {
-    while(1)
-    {
+    uint8_t btn_read = 0;
+    uint8_t prev_read = 0;
 
+    while (1)
+    {
+        btn_read = HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin);
+        if (btn_read) // button pressed
+        {
+            if (!prev_read) // first press
+            {
+                if(_next_task_handle != NULL)
+                {
+                    xTaskNotify(_next_task_handle, 0, eNoAction);
+                }
+                else
+                {
+                    vTaskSuspendAll();
+                    vTaskResume(_ledg_task_handle);
+                    vTaskResume(_ledy_task_handle);
+                    vTaskResume(_ledr_task_handle);
+                    _next_task_handle = _ledg_task_handle;
+                    xTaskResumeAll();
+                }
+            }
+        }
+        prev_read = btn_read;
+        vTaskDelay(pdMS_TO_TICKS(10));
     }
 }
 
