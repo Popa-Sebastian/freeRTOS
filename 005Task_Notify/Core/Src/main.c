@@ -108,9 +108,6 @@ int main(void)
   status = xTaskCreate(ledr_handler, "LEDR", 200, NULL, 1, &_ledr_task_handle);
   configASSERT(status == pdPASS);
 
-  status = xTaskCreate(button_handler, "BUTTON", 200, NULL, 4, &_button_task_handle);
-  configASSERT(status == pdPASS);
-
   // Start scheduler
   vTaskStartScheduler();
 
@@ -239,9 +236,27 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(LD4_GPIO_Port, &GPIO_InitStruct);
 
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 6, 0);
+  HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
+
 }
 
 /* USER CODE BEGIN 4 */
+
+/**
+ * Button press ISR
+ */
+void button_interrupt_handler(void)
+{
+    BaseType_t pxHigherPriorityTaskWoken;
+    pxHigherPriorityTaskWoken = pdFALSE;
+
+    xTaskNotifyFromISR(_next_task_handle, 0, eNoAction, NULL);
+
+    portYIELD_FROM_ISR(pxHigherPriorityTaskWoken);
+}
+
 static void ledg_handler(void *parameters)
 {
     BaseType_t status;
@@ -252,12 +267,13 @@ static void ledg_handler(void *parameters)
         status = xTaskNotifyWait(0, 0, NULL, pdMS_TO_TICKS(1000));
         if (status == pdTRUE)
         {
-            vTaskSuspendAll();
+            portENTER_CRITICAL();
             _next_task_handle = _ledy_task_handle;
-            xTaskResumeAll();
-
             HAL_GPIO_WritePin(LEDG_GPIO_Port, LEDG_Pin, GPIO_PIN_SET);
+            portEXIT_CRITICAL();
+
             vTaskSuspend(NULL); // self suspend
+
         }
     }
 }
@@ -272,11 +288,11 @@ static void ledy_handler(void *parameters)
         status = xTaskNotifyWait(0, 0, NULL, pdMS_TO_TICKS(800));
         if (status == pdTRUE)
         {
-            vTaskSuspendAll();
+            portENTER_CRITICAL();
             _next_task_handle = _ledr_task_handle;
-            xTaskResumeAll();
-
             HAL_GPIO_WritePin(LEDY_GPIO_Port, LEDY_Pin, GPIO_PIN_SET);
+            portEXIT_CRITICAL();
+
             vTaskSuspend(NULL); // self suspend
         }
     }
@@ -292,17 +308,20 @@ static void ledr_handler(void *parameters)
         status = xTaskNotifyWait(0, 0, NULL, pdMS_TO_TICKS(400));
         if (status == pdTRUE)
         {
-            vTaskSuspendAll();
+            portENTER_CRITICAL();
             _next_task_handle = NULL;
-            xTaskResumeAll();
-
             HAL_GPIO_WritePin(LEDR_GPIO_Port, LEDR_Pin, GPIO_PIN_SET);
+            portEXIT_CRITICAL();
+
             vTaskSuspend(NULL); // self suspend
         }
     }
 }
 
-static void button_handler(void *parameters)
+/**
+ * Non ISR Based button handler
+ */
+__unused static void button_handler(void *parameters)
 {
     uint8_t btn_read = 0;
     uint8_t prev_read = 0;
