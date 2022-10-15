@@ -51,7 +51,7 @@ build, this configuration file has all options turned on. */
 #define configTICK_RATE_HZ						( 1000 )
 #define configUSE_PORT_OPTIMISED_TASK_SELECTION	1
 #define configUSE_QUEUE_SETS					1
-#define configUSE_IDLE_HOOK						0
+#define configUSE_IDLE_HOOK						1
 #define configUSE_TICK_HOOK						0
 #define configCPU_CLOCK_HZ						80000000
 #define configMAX_PRIORITIES					( 5 )
