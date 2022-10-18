@@ -151,11 +151,11 @@
                         						
                         <entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="App/Src"/>
                         						
+                        <entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="ThirdParty"/>
+                        						
                         <entry excluding="Src/sysmem.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
                         						
                         <entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Drivers"/>
-                        						
-                        <entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="ThirdParty"/>
                         					
                     </sourceEntries>
                     				
@@ -303,11 +303,11 @@
                     					
                     <sourceEntries>
                         						
+                        <entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="ThirdParty"/>
+                        						
                         <entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
                         						
                         <entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Drivers"/>
-                        						
-                        <entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="ThirdParty"/>
                         					
                     </sourceEntries>
                     				
