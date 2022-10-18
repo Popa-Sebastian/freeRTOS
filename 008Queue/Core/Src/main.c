@@ -52,6 +52,8 @@ TaskHandle_t _handle_print_task;
 TaskHandle_t _handle_led_task;
 TaskHandle_t _handle_rtc_task;
 
+QueueHandle_t q_data;
+QueueHandle_t q_print;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -117,6 +119,12 @@ int main(void)
   status = xTaskCreate(rtc_task, "rtc_task", 250, NULL, 2, &_handle_rtc_task);
   configASSERT(status == pdPASS);
 
+  // Create Queues
+  q_data = xQueueCreate(10, sizeof(char));
+  configASSERT(q_data != NULL);
+
+  q_print = xQueueCreate(10, sizeof(size_t));
+  configASSERT(q_print != NULL);
 
   // Start scheduler
   vTaskStartScheduler();
