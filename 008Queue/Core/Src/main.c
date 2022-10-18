@@ -46,14 +46,20 @@ RTC_HandleTypeDef hrtc;
 UART_HandleTypeDef huart1;
 
 /* USER CODE BEGIN PV */
+// Task handles
 TaskHandle_t _handle_menu_task;
 TaskHandle_t _handle_cmd_task;
 TaskHandle_t _handle_print_task;
 TaskHandle_t _handle_led_task;
 TaskHandle_t _handle_rtc_task;
 
+// Queue handles
 QueueHandle_t q_data;
 QueueHandle_t q_print;
+
+// UART Receive data buffer
+volatile uint8_t _user_byte;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -125,6 +131,9 @@ int main(void)
 
   q_print = xQueueCreate(10, sizeof(size_t));
   configASSERT(q_print != NULL);
+
+  // Enable UART Receive
+  HAL_UART_Receive_IT(&huart1, (uint8_t *) &_user_byte, 1);
 
   // Start scheduler
   vTaskStartScheduler();
@@ -340,7 +349,30 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+    uint8_t dummy_buffer;
 
+    if (!xQueueIsQueueFullFromISR(q_data))
+    {
+        xQueueSendFromISR(q_data, (void *) &_user_byte, NULL);
+    }
+    else // queue is full
+    {
+        if (_user_byte == '\n') // make sure last data byte is \n
+        {
+            xQueueReceiveFromISR(q_data, (void *)&dummy_buffer, NULL);
+            xQueueSendFromISR(q_data, (void *)&_user_byte, NULL);
+        }
+    }
+
+    if (_user_byte == '\n')
+    {
+        xTaskNotifyFromISR(_handle_cmd_task, 0, eNoAction, NULL);
+    }
+
+    HAL_UART_Receive_IT(&huart1, (uint8_t *) &_user_byte, 1);
+}
 /* USER CODE END 4 */
 
  /**
