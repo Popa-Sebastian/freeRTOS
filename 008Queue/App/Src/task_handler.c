@@ -12,6 +12,7 @@
 
 /* Imported data */
 extern QueueHandle_t q_data;
+extern QueueHandle_t q_print;
 
 extern TaskHandle_t _handle_menu_task;
 extern TaskHandle_t _handle_cmd_task;
@@ -29,9 +30,58 @@ static void proccess_command(command_t *cmd);
 /* Function Declarations */
 void menu_task(void *parameters)
 {
+    uint32_t cmd_addr;
+    command_t *p_cmd;
+    uint8_t option;
+
+    const char * msg_menu = "=================\n"
+                            "|      Menu      |\n"
+                            "==================\n"
+                            "LED effect: 0\n"
+                            "Date and time: 1\n"
+                            "Exit: 2\n"
+                            "Input: ";
+
+    const char * msg_inv = "Invalid message\n";
+
     while(1)
     {
+        // Print Main Menu
+        xQueueSend(q_print, &msg_menu, portMAX_DELAY);
 
+        // Get user command by address using the notify value
+        xTaskNotifyWait(0, 0, &cmd_addr, portMAX_DELAY);
+
+        // Get pointer to the user command
+        p_cmd = (command_t*)cmd_addr;
+
+        if(p_cmd->len == 1)
+        {
+            option = p_cmd->payload[0] - '0';
+            switch (option)
+            {
+            case 0:
+                _curr_state = LedEffect;
+                xTaskNotify(_handle_led_task, 0, eNoAction);
+                break;
+            case 1:
+                _curr_state = RtcMenu;
+                xTaskNotify(_handle_rtc_task, 0, eNoAction);
+                break;
+            case 2: //exit
+                break;
+            default:
+                xQueueSend(q_print, &msg_inv, portMAX_DELAY);
+                break;
+            }
+        }
+        else
+        {
+            xQueueSend(q_print, &msg_inv, portMAX_DELAY);
+        }
+
+        // Wait for a new entry to Main Menu, triggered by another task
+        xTaskNotifyWait(0, 0, NULL, portMAX_DELAY);
     }
 }
 
