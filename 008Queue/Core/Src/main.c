@@ -19,12 +19,11 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "task_handler.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
-#include "FreeRTOS.h"
-#include "task.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -47,12 +46,12 @@ RTC_HandleTypeDef hrtc;
 UART_HandleTypeDef huart1;
 
 /* USER CODE BEGIN PV */
-TaskHandle_t _ledr_task_handle;
-TaskHandle_t _ledy_task_handle;
-TaskHandle_t _ledg_task_handle;
-TaskHandle_t _button_task_handle;
+TaskHandle_t _handle_menu_task;
+TaskHandle_t _handle_cmd_task;
+TaskHandle_t _handle_print_task;
+TaskHandle_t _handle_led_task;
+TaskHandle_t _handle_rtc_task;
 
-TaskHandle_t volatile _next_task_handle = NULL;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -61,10 +60,7 @@ static void MX_GPIO_Init(void);
 static void MX_RTC_Init(void);
 static void MX_USART1_UART_Init(void);
 /* USER CODE BEGIN PFP */
-static void ledr_handler(void *parameters);
-static void ledy_handler(void *parameters);
-static void ledg_handler(void *parameters);
-static void button_handler(void *parameters);
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -103,17 +99,24 @@ int main(void)
   MX_RTC_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
+
+  // Create Tasks
   BaseType_t status;
-  status = xTaskCreate(ledg_handler, "LEDG", 200, NULL, 3, &_ledg_task_handle);
+  status = xTaskCreate(menu_task, "menu_task", 250, NULL, 2, &_handle_menu_task);
   configASSERT(status == pdPASS);
 
-  _next_task_handle = _ledg_task_handle;
-
-  status = xTaskCreate(ledy_handler, "LEDY", 200, NULL, 2, &_ledy_task_handle);
+  status = xTaskCreate(cmd_task, "cmd_task", 250, NULL, 2, &_handle_cmd_task);
   configASSERT(status == pdPASS);
 
-  status = xTaskCreate(ledr_handler, "LEDR", 200, NULL, 1, &_ledr_task_handle);
+  status = xTaskCreate(print_task, "print_task", 250, NULL, 2, &_handle_print_task);
   configASSERT(status == pdPASS);
+
+  status = xTaskCreate(led_task, "led_task", 250, NULL, 2, &_handle_led_task);
+  configASSERT(status == pdPASS);
+
+  status = xTaskCreate(rtc_task, "rtc_task", 250, NULL, 2, &_handle_rtc_task);
+  configASSERT(status == pdPASS);
+
 
   // Start scheduler
   vTaskStartScheduler();
@@ -329,115 +332,6 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-
-/**
- * Button press ISR
- */
-void button_interrupt_handler(void)
-{
-    BaseType_t pxHigherPriorityTaskWoken;
-    pxHigherPriorityTaskWoken = pdFALSE;
-
-    xTaskNotifyFromISR(_next_task_handle, 0, eNoAction, NULL);
-
-    portYIELD_FROM_ISR(pxHigherPriorityTaskWoken);
-}
-
-static void ledg_handler(void *parameters)
-{
-    BaseType_t status;
-
-    while(1)
-    {
-        HAL_GPIO_TogglePin(LEDG_GPIO_Port, LEDG_Pin);
-        status = xTaskNotifyWait(0, 0, NULL, pdMS_TO_TICKS(1000));
-        if (status == pdTRUE)
-        {
-            portENTER_CRITICAL();
-            _next_task_handle = _ledy_task_handle;
-            HAL_GPIO_WritePin(LEDG_GPIO_Port, LEDG_Pin, GPIO_PIN_SET);
-            portEXIT_CRITICAL();
-
-            vTaskSuspend(NULL); // self suspend
-
-        }
-    }
-}
-
-static void ledy_handler(void *parameters)
-{
-    BaseType_t status;
-
-    while(1)
-    {
-        HAL_GPIO_TogglePin(LEDY_GPIO_Port, LEDY_Pin);
-        status = xTaskNotifyWait(0, 0, NULL, pdMS_TO_TICKS(800));
-        if (status == pdTRUE)
-        {
-            portENTER_CRITICAL();
-            _next_task_handle = _ledr_task_handle;
-            HAL_GPIO_WritePin(LEDY_GPIO_Port, LEDY_Pin, GPIO_PIN_SET);
-            portEXIT_CRITICAL();
-
-            vTaskSuspend(NULL); // self suspend
-        }
-    }
-}
-
-static void ledr_handler(void *parameters)
-{
-    BaseType_t status;
-
-    while(1)
-    {
-        HAL_GPIO_TogglePin(LEDR_GPIO_Port, LEDR_Pin);
-        status = xTaskNotifyWait(0, 0, NULL, pdMS_TO_TICKS(400));
-        if (status == pdTRUE)
-        {
-            portENTER_CRITICAL();
-            _next_task_handle = NULL;
-            HAL_GPIO_WritePin(LEDR_GPIO_Port, LEDR_Pin, GPIO_PIN_SET);
-            portEXIT_CRITICAL();
-
-            vTaskSuspend(NULL); // self suspend
-        }
-    }
-}
-
-/**
- * Non ISR Based button handler
- */
-__unused static void button_handler(void *parameters)
-{
-    uint8_t btn_read = 0;
-    uint8_t prev_read = 0;
-
-    while (1)
-    {
-        btn_read = HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin);
-        if (btn_read) // button pressed
-        {
-            if (!prev_read) // first press
-            {
-                if(_next_task_handle != NULL)
-                {
-                    xTaskNotify(_next_task_handle, 0, eNoAction);
-                }
-                else
-                {
-                    vTaskSuspendAll();
-                    vTaskResume(_ledg_task_handle);
-                    vTaskResume(_ledy_task_handle);
-                    vTaskResume(_ledr_task_handle);
-                    _next_task_handle = _ledg_task_handle;
-                    xTaskResumeAll();
-                }
-            }
-        }
-        prev_read = btn_read;
-        vTaskDelay(pdMS_TO_TICKS(10));
-    }
-}
 
 /* USER CODE END 4 */
 

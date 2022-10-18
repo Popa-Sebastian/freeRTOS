@@ -17,5 +17,43 @@
 /* Static function prototypes */
 
 /* Function Declarations */
+void menu_task(void *parameters)
+{
+    while(1)
+    {
 
+    }
+}
+
+void cmd_task(void *parameters)
+{
+    while(1)
+    {
+
+    }
+}
+
+void print_task(void *parameters)
+{
+    while(1)
+    {
+
+    }
+}
+
+void led_task(void *parameters)
+{
+    while(1)
+    {
+
+    }
+}
+
+void rtc_task(void *parameters)
+{
+    while(1)
+    {
+
+    }
+}
 /* End of File */

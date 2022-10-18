@@ -18,6 +18,11 @@
 /* Global variables */
 
 /* Public Function Declaration */
+void menu_task(void *parameters);
+void cmd_task(void *parameters);
+void print_task(void *parameters);
+void led_task(void *parameters);
+void rtc_task(void *parameters);
 
 #endif // TASK_HANDLER_H_
 /* End of File */
