@@ -112,9 +112,56 @@ void print_task(void *parameters)
 
 void led_task(void *parameters)
 {
+    uint32_t cmd_addr;
+    command_t *p_cmd;
+    uint8_t option;
+
+    const char * msg_menu = "=================\n"
+                            "|      LED       |\n"
+                            "==================\n"
+                            "0 = turn off\n"
+                            "1 = turn on\n"
+                            "Input: ";
+    const char * msg_inv = "Invalid message\n";
+
     while(1)
     {
+        // Wait for entry in LED Menu
+        xTaskNotifyWait(0, 0, NULL, portMAX_DELAY);
 
+        // Print Main Menu
+        xQueueSend(q_print, &msg_menu, portMAX_DELAY);
+
+        // Get user command by address using the notify value
+        xTaskNotifyWait(0, 0, &cmd_addr, portMAX_DELAY);
+
+        // Get pointer to the user command
+        p_cmd = (command_t*)cmd_addr;
+
+        if(p_cmd->len == 1)
+        {
+           option = p_cmd->payload[0] - '0';
+           switch (option)
+           {
+           case 0:
+               HAL_GPIO_WritePin(LEDG_GPIO_Port, LEDG_Pin, GPIO_PIN_RESET);
+               break;
+           case 1:
+               HAL_GPIO_WritePin(LEDG_GPIO_Port, LEDG_Pin, GPIO_PIN_SET);
+               break;
+           default:
+               xQueueSend(q_print, &msg_inv, portMAX_DELAY);
+               break;
+           }
+        }
+        else
+        {
+           xQueueSend(q_print, &msg_inv, portMAX_DELAY);
+        }
+
+        // Go to Main Menu
+        _curr_state = MainMenu;
+        xTaskNotify(_handle_menu_task, 0, eNoAction);
     }
 }
 
