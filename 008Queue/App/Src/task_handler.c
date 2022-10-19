@@ -7,21 +7,26 @@
   ******************************************************************************
   */
 /* Includes */
+#include <string.h>
+
 #include "main.h"
 #include "task_handler.h"
 #include "led_effect.h"
 
 /* Imported data */
+// HAL types
+extern UART_HandleTypeDef huart1;
+
+// Queues
 extern QueueHandle_t q_data;
 extern QueueHandle_t q_print;
 
+// Tasks
 extern TaskHandle_t _handle_menu_task;
 extern TaskHandle_t _handle_cmd_task;
 extern TaskHandle_t _handle_print_task;
 extern TaskHandle_t _handle_led_task;
 extern TaskHandle_t _handle_rtc_task;
-
-extern TimerHandle_t _handle_led_timer;
 
 /* Static Variable Declarations */
 state_t _curr_state = MainMenu;
@@ -37,15 +42,17 @@ void menu_task(void *parameters)
     command_t *p_cmd;
     uint8_t option;
 
-    const char * msg_menu = "=================\n"
-                            "|      Menu      |\n"
-                            "==================\n"
-                            "LED effect: 0\n"
-                            "Date and time: 1\n"
-                            "Exit: 2\n"
-                            "Input: ";
+    const char * msg_menu =
+            "\r\n"
+            "=================\r\n"
+            "|      Menu      |\r\n"
+            "==================\r\n"
+            "LED effect: 0\r\n"
+            "Date and time: 1\r\n"
+            "Exit: 2\r\n"
+            "Input: ";
 
-    const char * msg_inv = "Invalid message\n";
+    const char * msg_inv = "Invalid message\r\n";
 
     while(1)
     {
@@ -81,6 +88,7 @@ void menu_task(void *parameters)
         else
         {
             xQueueSend(q_print, &msg_inv, portMAX_DELAY);
+            continue;
         }
 
         // Wait for a new entry to Main Menu, triggered by another task
@@ -107,9 +115,11 @@ void cmd_task(void *parameters)
 
 void print_task(void *parameters)
 {
+    uint32_t *msg;
     while(1)
     {
-
+        xQueueReceive(q_print, &msg, portMAX_DELAY);
+        HAL_UART_Transmit(&huart1, (uint8_t*)msg, strlen((char*)msg), HAL_MAX_DELAY);
     }
 }
 
@@ -119,13 +129,16 @@ void led_task(void *parameters)
     command_t *p_cmd;
     uint8_t option;
 
-    const char * msg_menu = "=================\n"
-                            "|      LED       |\n"
-                            "==================\n"
-                            "0 = turn off\n"
-                            "1 = turn on\n"
-                            "Input: ";
-    const char * msg_inv = "Invalid message\n";
+    const char * msg_menu =
+            "\r\n"
+            "=================\r\n"
+            "|      LED       |\r\n"
+            "==================\r\n"
+            "0 = turn off\r\n"
+            "1 = turn on\r\n"
+            "Input: ";
+
+    const char * msg_inv = "Invalid message\r\n";
 
     while(1)
     {
@@ -147,10 +160,10 @@ void led_task(void *parameters)
            switch (option)
            {
            case 0:
-               xTimerStop(_handle_led_timer, portMAX_DELAY);
+               led_off();
                break;
            case 1:
-               xTimerStart(_handle_led_timer, portMAX_DELAY);
+               led_on();
                break;
            default:
                xQueueSend(q_print, &msg_inv, portMAX_DELAY);

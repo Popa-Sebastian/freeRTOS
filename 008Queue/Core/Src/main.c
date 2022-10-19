@@ -386,7 +386,7 @@ void vTimerCallback(TimerHandle_t xTimer)
     __unused int id;
     id = (uint32_t)pvTimerGetTimerID(xTimer); // get id for debugging purpose only
 
-    led_on();
+    toggle_led();
 }
 /* USER CODE END 4 */
 
