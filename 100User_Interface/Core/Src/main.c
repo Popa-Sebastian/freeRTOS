@@ -25,9 +25,8 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
-#include "FreeRTOS.h"
-#include "task.h"
-#include "log.h"
+
+#include "task_handler.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -42,13 +41,20 @@
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
 /* Module Log_Level Priority */
-LOG_MODULE_INIT("main.c", LOG_LEVEL_DEFAULT);
 
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
+/* Task handles */
+TaskHandle_t _handle_log_task;
+TaskHandle_t _handle_periodic_task;
+
+/* Queue handles */
+QueueHandle_t _q_log;
+
+/* Timer Handles */
 
 /* USER CODE END PV */
 
@@ -93,6 +99,21 @@ int main(void)
   MX_GPIO_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
+  BaseType_t status;
+
+  /* Create Tasks */
+  status = xTaskCreate(periodic_task, "periodic_task", 250, NULL, 2, &_handle_periodic_task);
+  configASSERT(status == pdPASS);
+
+  status = xTaskCreate(log_task, "log_task", 250, NULL, 2, &_handle_log_task);
+  configASSERT(status == pdPASS);
+
+  /* Create Queues */
+  _q_log = xQueueCreate(100, sizeof(size_t));
+  configASSERT(_q_log != NULL);
+
+  /* Start scheduler */
+  vTaskStartScheduler();
 
   /* USER CODE END 2 */
 
