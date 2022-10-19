@@ -102,9 +102,11 @@ int main(void)
   MX_USART1_UART_Init();
   MX_SPI2_Init();
   /* USER CODE BEGIN 2 */
-  BaseType_t status;
+  /* Init User Peripherals */
+  LCD_Init();
 
   /* Create Tasks */
+  BaseType_t status;
   status = xTaskCreate(periodic_task, "periodic_task", 250, NULL, 2, &_handle_periodic_task);
   configASSERT(status == pdPASS);
 
