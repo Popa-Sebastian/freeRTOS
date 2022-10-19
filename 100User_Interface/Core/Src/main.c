@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include "FreeRTOS.h"
 #include "task.h"
+#include "log.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -40,6 +41,8 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
+/* Module Log_Level Priority */
+LOG_MODULE_INIT("main.c", LOG_LEVEL_DEFAULT);
 
 /* USER CODE END PM */
 
