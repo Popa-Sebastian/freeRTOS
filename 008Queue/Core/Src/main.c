@@ -19,12 +19,12 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "task_handler.h"
+#include "led_effect.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
-#include "FreeRTOS.h"
-#include "task.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -42,24 +42,37 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+RTC_HandleTypeDef hrtc;
+
+UART_HandleTypeDef huart1;
 
 /* USER CODE BEGIN PV */
-TaskHandle_t _ledr_task_handle;
-TaskHandle_t _ledy_task_handle;
-TaskHandle_t _ledg_task_handle;
-TaskHandle_t _button_task_handle;
+// Task handles
+TaskHandle_t _handle_menu_task;
+TaskHandle_t _handle_cmd_task;
+TaskHandle_t _handle_print_task;
+TaskHandle_t _handle_led_task;
+TaskHandle_t _handle_rtc_task;
 
-TaskHandle_t volatile _next_task_handle = NULL;
+// Queue handles
+QueueHandle_t q_data;
+QueueHandle_t q_print;
+
+// Timers
+TimerHandle_t _handle_led_timer;
+
+// UART Receive data buffer
+volatile uint8_t _user_byte;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
+static void MX_RTC_Init(void);
+static void MX_USART1_UART_Init(void);
 /* USER CODE BEGIN PFP */
-static void ledr_handler(void *parameters);
-static void ledy_handler(void *parameters);
-static void ledg_handler(void *parameters);
-static void button_handler(void *parameters);
+void vTimerCallback(TimerHandle_t xTimer);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -95,18 +108,39 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_RTC_Init();
+  MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
+
+  // Create Tasks
   BaseType_t status;
-  status = xTaskCreate(ledg_handler, "LEDG", 200, NULL, 3, &_ledg_task_handle);
+  status = xTaskCreate(menu_task, "menu_task", 250, NULL, 2, &_handle_menu_task);
   configASSERT(status == pdPASS);
 
-  _next_task_handle = _ledg_task_handle;
-
-  status = xTaskCreate(ledy_handler, "LEDY", 200, NULL, 2, &_ledy_task_handle);
+  status = xTaskCreate(cmd_task, "cmd_task", 250, NULL, 2, &_handle_cmd_task);
   configASSERT(status == pdPASS);
 
-  status = xTaskCreate(ledr_handler, "LEDR", 200, NULL, 1, &_ledr_task_handle);
+  status = xTaskCreate(print_task, "print_task", 250, NULL, 2, &_handle_print_task);
   configASSERT(status == pdPASS);
+
+  status = xTaskCreate(led_task, "led_task", 250, NULL, 2, &_handle_led_task);
+  configASSERT(status == pdPASS);
+
+  status = xTaskCreate(rtc_task, "rtc_task", 250, NULL, 2, &_handle_rtc_task);
+  configASSERT(status == pdPASS);
+
+  // Create Queues
+  q_data = xQueueCreate(10, sizeof(char));
+  configASSERT(q_data != NULL);
+
+  q_print = xQueueCreate(10, sizeof(size_t));
+  configASSERT(q_print != NULL);
+
+  // Create timers
+  _handle_led_timer = xTimerCreate("led_on", pdMS_TO_TICKS(500), pdTRUE, (void *)1, (void *)vTimerCallback);
+
+  // Enable UART Receive in Interrupt Mode
+  HAL_UART_Receive_IT(&huart1, (uint8_t *) &_user_byte, 1);
 
   // Start scheduler
   vTaskStartScheduler();
@@ -132,13 +166,15 @@ void SystemClock_Config(void)
 {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+  RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};
 
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI|RCC_OSCILLATORTYPE_LSI;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+  RCC_OscInitStruct.LSIState = RCC_LSI_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
   RCC_OscInitStruct.PLL.PLLM = 1;
@@ -163,12 +199,89 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_RTC|RCC_PERIPHCLK_USART1;
+  PeriphClkInit.Usart1ClockSelection = RCC_USART1CLKSOURCE_PCLK2;
+  PeriphClkInit.RTCClockSelection = RCC_RTCCLKSOURCE_LSI;
+  if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
+  {
+    Error_Handler();
+  }
   /** Configure the main internal regulator output voltage
   */
   if (HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE1) != HAL_OK)
   {
     Error_Handler();
   }
+}
+
+/**
+  * @brief RTC Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_RTC_Init(void)
+{
+
+  /* USER CODE BEGIN RTC_Init 0 */
+
+  /* USER CODE END RTC_Init 0 */
+
+  /* USER CODE BEGIN RTC_Init 1 */
+
+  /* USER CODE END RTC_Init 1 */
+  /** Initialize RTC Only
+  */
+  hrtc.Instance = RTC;
+  hrtc.Init.HourFormat = RTC_HOURFORMAT_12;
+  hrtc.Init.AsynchPrediv = 127;
+  hrtc.Init.SynchPrediv = 255;
+  hrtc.Init.OutPut = RTC_OUTPUT_DISABLE;
+  hrtc.Init.OutPutRemap = RTC_OUTPUT_REMAP_NONE;
+  hrtc.Init.OutPutPolarity = RTC_OUTPUT_POLARITY_HIGH;
+  hrtc.Init.OutPutType = RTC_OUTPUT_TYPE_OPENDRAIN;
+  if (HAL_RTC_Init(&hrtc) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN RTC_Init 2 */
+
+  /* USER CODE END RTC_Init 2 */
+
+}
+
+/**
+  * @brief USART1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_USART1_UART_Init(void)
+{
+
+  /* USER CODE BEGIN USART1_Init 0 */
+
+  /* USER CODE END USART1_Init 0 */
+
+  /* USER CODE BEGIN USART1_Init 1 */
+
+  /* USER CODE END USART1_Init 1 */
+  huart1.Instance = USART1;
+  huart1.Init.BaudRate = 115200;
+  huart1.Init.WordLength = UART_WORDLENGTH_8B;
+  huart1.Init.StopBits = UART_STOPBITS_1;
+  huart1.Init.Parity = UART_PARITY_NONE;
+  huart1.Init.Mode = UART_MODE_TX_RX;
+  huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart1.Init.OverSampling = UART_OVERSAMPLING_16;
+  huart1.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+  huart1.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+  if (HAL_UART_Init(&huart1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN USART1_Init 2 */
+
+  /* USER CODE END USART1_Init 2 */
+
 }
 
 /**
@@ -243,116 +356,38 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-
-/**
- * Button press ISR
- */
-void button_interrupt_handler(void)
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
-    BaseType_t pxHigherPriorityTaskWoken;
-    pxHigherPriorityTaskWoken = pdFALSE;
+    uint8_t dummy_buffer;
 
-    xTaskNotifyFromISR(_next_task_handle, 0, eNoAction, NULL);
-
-    portYIELD_FROM_ISR(pxHigherPriorityTaskWoken);
-}
-
-static void ledg_handler(void *parameters)
-{
-    BaseType_t status;
-
-    while(1)
+    if (!xQueueIsQueueFullFromISR(q_data))
     {
-        HAL_GPIO_TogglePin(LEDG_GPIO_Port, LEDG_Pin);
-        status = xTaskNotifyWait(0, 0, NULL, pdMS_TO_TICKS(1000));
-        if (status == pdTRUE)
+        xQueueSendFromISR(q_data, (void *) &_user_byte, NULL);
+    }
+    else // queue is full
+    {
+        if (_user_byte == '\n') // make sure last data byte is \n
         {
-            portENTER_CRITICAL();
-            _next_task_handle = _ledy_task_handle;
-            HAL_GPIO_WritePin(LEDG_GPIO_Port, LEDG_Pin, GPIO_PIN_SET);
-            portEXIT_CRITICAL();
-
-            vTaskSuspend(NULL); // self suspend
-
+            xQueueReceiveFromISR(q_data, (void *)&dummy_buffer, NULL);
+            xQueueSendFromISR(q_data, (void *)&_user_byte, NULL);
         }
     }
-}
 
-static void ledy_handler(void *parameters)
-{
-    BaseType_t status;
-
-    while(1)
+    if (_user_byte == '\n')
     {
-        HAL_GPIO_TogglePin(LEDY_GPIO_Port, LEDY_Pin);
-        status = xTaskNotifyWait(0, 0, NULL, pdMS_TO_TICKS(800));
-        if (status == pdTRUE)
-        {
-            portENTER_CRITICAL();
-            _next_task_handle = _ledr_task_handle;
-            HAL_GPIO_WritePin(LEDY_GPIO_Port, LEDY_Pin, GPIO_PIN_SET);
-            portEXIT_CRITICAL();
-
-            vTaskSuspend(NULL); // self suspend
-        }
+        xTaskNotifyFromISR(_handle_cmd_task, 0, eNoAction, NULL);
     }
+
+    HAL_UART_Receive_IT(&huart1, (uint8_t *) &_user_byte, 1);
 }
 
-static void ledr_handler(void *parameters)
+void vTimerCallback(TimerHandle_t xTimer)
 {
-    BaseType_t status;
+    __unused int id;
+    id = (uint32_t)pvTimerGetTimerID(xTimer); // get id for debugging purpose only
 
-    while(1)
-    {
-        HAL_GPIO_TogglePin(LEDR_GPIO_Port, LEDR_Pin);
-        status = xTaskNotifyWait(0, 0, NULL, pdMS_TO_TICKS(400));
-        if (status == pdTRUE)
-        {
-            portENTER_CRITICAL();
-            _next_task_handle = NULL;
-            HAL_GPIO_WritePin(LEDR_GPIO_Port, LEDR_Pin, GPIO_PIN_SET);
-            portEXIT_CRITICAL();
-
-            vTaskSuspend(NULL); // self suspend
-        }
-    }
+    toggle_led();
 }
-
-/**
- * Non ISR Based button handler
- */
-__unused static void button_handler(void *parameters)
-{
-    uint8_t btn_read = 0;
-    uint8_t prev_read = 0;
-
-    while (1)
-    {
-        btn_read = HAL_GPIO_ReadPin(B1_GPIO_Port, B1_Pin);
-        if (btn_read) // button pressed
-        {
-            if (!prev_read) // first press
-            {
-                if(_next_task_handle != NULL)
-                {
-                    xTaskNotify(_next_task_handle, 0, eNoAction);
-                }
-                else
-                {
-                    vTaskSuspendAll();
-                    vTaskResume(_ledg_task_handle);
-                    vTaskResume(_ledy_task_handle);
-                    vTaskResume(_ledr_task_handle);
-                    _next_task_handle = _ledg_task_handle;
-                    xTaskResumeAll();
-                }
-            }
-        }
-        prev_read = btn_read;
-        vTaskDelay(pdMS_TO_TICKS(10));
-    }
-}
-
 /* USER CODE END 4 */
 
  /**
