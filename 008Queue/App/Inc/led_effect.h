@@ -18,6 +18,7 @@
 /* Global variables */
 
 /* Public Function Declaration */
+void led_on(void);
 
 #endif // LED_EFFECT_H_
 /* End of File */

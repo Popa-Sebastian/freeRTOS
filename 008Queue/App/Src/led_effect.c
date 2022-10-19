@@ -17,5 +17,9 @@
 /* Static function prototypes */
 
 /* Function Declarations */
+void led_on(void)
+{
+    HAL_GPIO_TogglePin(LEDR_GPIO_Port, LEDR_Pin);
+}
 
 /* End of File */

@@ -35,6 +35,8 @@ extern "C" {
 #include "FreeRTOS.h"
 #include "task.h"
 #include "queue.h"
+#include "timers.h"
+
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/

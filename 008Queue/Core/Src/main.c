@@ -20,6 +20,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "task_handler.h"
+#include "led_effect.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -57,6 +58,9 @@ TaskHandle_t _handle_rtc_task;
 QueueHandle_t q_data;
 QueueHandle_t q_print;
 
+// Timers
+TimerHandle_t _handle_led_timer;
+
 // UART Receive data buffer
 volatile uint8_t _user_byte;
 
@@ -68,7 +72,7 @@ static void MX_GPIO_Init(void);
 static void MX_RTC_Init(void);
 static void MX_USART1_UART_Init(void);
 /* USER CODE BEGIN PFP */
-
+void vTimerCallback(TimerHandle_t xTimer);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -132,7 +136,10 @@ int main(void)
   q_print = xQueueCreate(10, sizeof(size_t));
   configASSERT(q_print != NULL);
 
-  // Enable UART Receive
+  // Create timers
+  _handle_led_timer = xTimerCreate("led_on", pdMS_TO_TICKS(500), pdTRUE, (void *)1, (void *)vTimerCallback);
+
+  // Enable UART Receive in Interrupt Mode
   HAL_UART_Receive_IT(&huart1, (uint8_t *) &_user_byte, 1);
 
   // Start scheduler
@@ -372,6 +379,14 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
     }
 
     HAL_UART_Receive_IT(&huart1, (uint8_t *) &_user_byte, 1);
+}
+
+void vTimerCallback(TimerHandle_t xTimer)
+{
+    __unused int id;
+    id = (uint32_t)pvTimerGetTimerID(xTimer); // get id for debugging purpose only
+
+    led_on();
 }
 /* USER CODE END 4 */
 

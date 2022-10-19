@@ -9,6 +9,7 @@
 /* Includes */
 #include "main.h"
 #include "task_handler.h"
+#include "led_effect.h"
 
 /* Imported data */
 extern QueueHandle_t q_data;
@@ -19,6 +20,8 @@ extern TaskHandle_t _handle_cmd_task;
 extern TaskHandle_t _handle_print_task;
 extern TaskHandle_t _handle_led_task;
 extern TaskHandle_t _handle_rtc_task;
+
+extern TimerHandle_t _handle_led_timer;
 
 /* Static Variable Declarations */
 state_t _curr_state = MainMenu;
@@ -144,10 +147,10 @@ void led_task(void *parameters)
            switch (option)
            {
            case 0:
-               HAL_GPIO_WritePin(LEDG_GPIO_Port, LEDG_Pin, GPIO_PIN_RESET);
+               xTimerStop(_handle_led_timer, portMAX_DELAY);
                break;
            case 1:
-               HAL_GPIO_WritePin(LEDG_GPIO_Port, LEDG_Pin, GPIO_PIN_SET);
+               xTimerStart(_handle_led_timer, portMAX_DELAY);
                break;
            default:
                xQueueSend(q_print, &msg_inv, portMAX_DELAY);
