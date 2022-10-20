@@ -113,19 +113,19 @@ uint8_t spiOK = 0U;
 /**
  * Initialize LCD.
  */
-void LCD_Init(void) {
-  LCD_Reset();
-  LCD_Write_Command(0x21);
-  LCD_Write_Command(0xD0);
-  LCD_Write_Command(0x20);
-  LCD_Write_Command(0x0C);
-  LCD_Clear();
+void LCD_DRIVER_Init(void) {
+  LCD_DRIVER_Reset();
+  LCD_DRIVER_Write_Command(0x21);
+  LCD_DRIVER_Write_Command(0xD0);
+  LCD_DRIVER_Write_Command(0x20);
+  LCD_DRIVER_Write_Command(0x0C);
+  LCD_DRIVER_Clear();
 }
 
 /**
  * Reset LCD.
  */
-void LCD_Reset(void) {
+void LCD_DRIVER_Reset(void) {
   HAL_GPIO_WritePin(LCD_RESET_PORT, LCD_RESET_PIN, GPIO_PIN_RESET);
   HAL_Delay(50);
   HAL_GPIO_WritePin(LCD_RESET_PORT, LCD_RESET_PIN, GPIO_PIN_SET);
@@ -136,23 +136,23 @@ void LCD_Reset(void) {
  * @param PosX X Position
  * @param PosY Y Position
  */
-void LCD_Set_Postion(uint8_t PosX, uint8_t PosY) {
-  LCD_Write_Command(0x40 | PosY);
-  LCD_Write_Command(0x80 | PosX);
+void LCD_DRIVER_Set_Postion(uint8_t PosX, uint8_t PosY) {
+  LCD_DRIVER_Write_Command(0x40 | PosY);
+  LCD_DRIVER_Write_Command(0x80 | PosX);
 }
 
 /**
  * Clear all contents on LCD.
  */
-void LCD_Clear(void) {
+void LCD_DRIVER_Clear(void) {
   uint8_t t;
   uint8_t k;
-  LCD_Set_Postion(0,0);
+  LCD_DRIVER_Set_Postion(0,0);
   for(t=0;t<6;t++)
   {
     for(k=0;k<84;k++)
     {
-      LCD_Write_Data(0x00);
+      LCD_DRIVER_Write_Data(0x00);
     }
   }
 }
@@ -161,10 +161,10 @@ void LCD_Clear(void) {
  * Write a single char to LCD.
  * @param ch char to write.
  */
-void LCD_Write_Char(uint8_t ch) {
+void LCD_DRIVER_Write_Char(uint8_t ch) {
   uint8_t line;
   ch -= 32;
-  for (line=0; line<6; line++) LCD_Write_Data(font6x8[ch][line]);
+  for (line=0; line<6; line++) LCD_DRIVER_Write_Data(font6x8[ch][line]);
 }
 
 /**
@@ -173,10 +173,10 @@ void LCD_Write_Char(uint8_t ch) {
  * @param PosY Y start point
  * @param str  string to write.
  */
-void LCD_Write_String(uint8_t PosX, uint8_t PosY, char * str) {
-  LCD_Set_Postion(PosX, PosY);
+void LCD_DRIVER_Write_String(uint8_t PosX, uint8_t PosY, char * str) {
+  LCD_DRIVER_Set_Postion(PosX, PosY);
   while(* str) {
-    LCD_Write_Char(* str);
+    LCD_DRIVER_Write_Char(* str);
     str ++;
   }
 }
@@ -185,7 +185,7 @@ void LCD_Write_String(uint8_t PosX, uint8_t PosY, char * str) {
  * Write LCD command to SPI
  * @param cmd command to write.
  */
-void LCD_Write_Command(uint8_t cmd) {
+void LCD_DRIVER_Write_Command(uint8_t cmd) {
   HAL_GPIO_WritePin(LCD_CE_PORT, LCD_CE_PIN, GPIO_PIN_RESET);
   HAL_GPIO_WritePin(LCD_DC_PORT, LCD_DC_PIN, GPIO_PIN_RESET);
   HAL_SPI_Transmit(&LCD_SPI_INTERFACE, &cmd, 0x01, HAL_MAX_DELAY);
@@ -199,7 +199,7 @@ void LCD_Write_Command(uint8_t cmd) {
  * Write LCD data to SPI
  * @param data data to write.
  */
-void LCD_Write_Data(uint8_t data) {
+void LCD_DRIVER_Write_Data(uint8_t data) {
   HAL_GPIO_WritePin(LCD_CE_PORT, LCD_CE_PIN, GPIO_PIN_RESET);
   HAL_GPIO_WritePin(LCD_DC_PORT, LCD_DC_PIN, GPIO_PIN_SET);
   HAL_SPI_Transmit(&LCD_SPI_INTERFACE, &data, 0x01, HAL_MAX_DELAY);
@@ -212,6 +212,6 @@ void LCD_Write_Data(uint8_t data) {
  * HAL SPI transfer complete callback
  * @param hspi HAL SPI handler.
  */
-void LCD_Callback(void) {
+void LCD_DRIVER_Callback(void) {
   spiOK = 1;
 }
