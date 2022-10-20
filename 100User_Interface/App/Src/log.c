@@ -18,7 +18,7 @@
 /* Imports */
 extern QueueHandle_t _q_log;
 
-
+/* Function Declarations */
 void log_msg(char const* fmt, ...)
 {
     static char textmsg[40];
@@ -30,7 +30,7 @@ void log_msg(char const* fmt, ...)
     uint32_t ms = tick % 1000;
     uint32_t s = tick / 1000;
     uint32_t m = s / 60;
-    sprintf(message, "%02lu:%02lu.%03lu ", m, s, ms);
+    sprintf(message, "%02lu:%02lu.%03lu ", m % 60, s % 60, ms);
 
     // Get text
     va_list arg;

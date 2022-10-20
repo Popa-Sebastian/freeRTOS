@@ -11,6 +11,7 @@
 
 #include "main.h"
 #include "task_handler.h"
+#include "lcd.h"
 #include "log.h"
 
 /* Imported data */
@@ -46,6 +47,7 @@ void periodic_task(void *parameters)
     {
         vTaskDelayUntil(&last_wakeup_time, pdMS_TO_TICKS(1000));
         log_msg("HELLO WORLD!");
+        LCD_Display();
     }
 }
 
