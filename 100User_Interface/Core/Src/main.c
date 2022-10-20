@@ -28,7 +28,7 @@
 #include <stdio.h>
 
 #include "task_handler.h"
-#include "nokia_5110.h"
+#include "lcd.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
