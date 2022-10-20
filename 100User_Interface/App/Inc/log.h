@@ -18,6 +18,11 @@
  */
 void log_msg(char const* fmt, ...);
 
+/**
+ * @brief ISR Safe version of @ref log_msg()
+ */
+void log_msg_fromISR(char const* fmt, ...);
+
 #endif /* APP_LOG_LOG_H_ */
 
 /* End of File */
