@@ -11,6 +11,14 @@
 /* Includes */
 
 /* Defines */
+#define BUTTON_PRESS_DEBOUNCE_MS    200
+
+/* Structs */
+typedef struct
+{
+    uint32_t lastButtonPress;
+    uint32_t currentButtonPress;
+} sButtonDebounce;
 
 /* Enums */
 

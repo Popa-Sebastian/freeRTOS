@@ -16,7 +16,7 @@
 #include "lcd.h"
 #include "log.h"
 
-/* Static Variable Declarations */
+/* Global Variable Declarations */
 static sMenu _menuInstance =
 {
         .menuText = "Main",
@@ -85,4 +85,8 @@ __unused static void _lcd_display_menu(void)
     }
 }
 
+sMenu * LCD_GetMenuInstance()
+{
+    return &_menuInstance;
+}
 /* End of File */

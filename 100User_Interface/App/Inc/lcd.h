@@ -37,6 +37,7 @@ typedef struct
 /* Public Function Declaration */
 void LCD_Init(void);
 void LCD_Display(void);
+sMenu * LCD_GetMenuInstance();
 
 #endif /* INC_LCD_H_ */
 /* End of File */
