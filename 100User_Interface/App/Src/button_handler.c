@@ -26,6 +26,10 @@ static bool _is_button_debounced(uint16_t GPIO_Pin);
 static void _button_update_cursor_pos(uint16_t GPIO_Pin);
 
 /* Static Function Declaration */
+/**
+ * @brief logs to print queue button pressed.
+ *        calls isr safe api @ref log_msg_fromISR()
+ */
 static void _button_press_log(uint16_t GPIO_Pin)
 {
     switch (GPIO_Pin) {
@@ -44,6 +48,9 @@ static void _button_press_log(uint16_t GPIO_Pin)
     }
 }
 
+/**
+ * @brief software button debouncing
+ */
 static bool _is_button_debounced(uint16_t GPIO_Pin)
 {
     uint32_t tick = xTaskGetTickCount();
@@ -77,6 +84,9 @@ static bool _is_button_debounced(uint16_t GPIO_Pin)
     return ret;
 }
 
+/**
+ * @brief updates menu instance cursor position
+ */
 static void _button_update_cursor_pos(uint16_t GPIO_Pin)
 {
     sMenu *menu = LCD_GetMenuInstance();
@@ -85,7 +95,7 @@ static void _button_update_cursor_pos(uint16_t GPIO_Pin)
     case BTN_UP_Pin:
         if (_is_button_debounced(GPIO_Pin))
         {
-            menu->cursorPos = menu->cursorPos > 0 ? menu->cursorPos - 1 : 0;
+            menu->cursorPos = menu->cursorPos > 0 ? menu->cursorPos - 1 : LCD_MAX_OPTIONS - 1;
         }
         break;
     case BTN_DN_Pin:
