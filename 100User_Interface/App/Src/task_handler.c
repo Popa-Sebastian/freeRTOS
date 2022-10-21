@@ -23,6 +23,7 @@ extern QueueHandle_t _q_log;
 
 /* HAL Types */
 extern UART_HandleTypeDef huart1;
+#define UART_HANDLER    huart1
 
 /* Static Variable Declarations */
 
@@ -35,7 +36,7 @@ void log_task(void *parameters)
     while(1)
     {
         xQueueReceive(_q_log, &msg, portMAX_DELAY);
-        HAL_UART_Transmit(&huart1, (uint8_t*)msg, strlen((char*)msg), HAL_MAX_DELAY);
+        HAL_UART_Transmit(&UART_HANDLER, (uint8_t*)msg, strlen((char*)msg), HAL_MAX_DELAY);
     }
 }
 
