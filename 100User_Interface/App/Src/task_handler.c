@@ -16,7 +16,7 @@
 
 /* Imported data */
 extern TaskHandle_t _handle_log_task;
-extern TaskHandle_t _handle_periodic_task;
+extern TaskHandle_t _handle_display_task;
 
 /* Queue handles */
 extern QueueHandle_t _q_log;
@@ -39,7 +39,7 @@ void log_task(void *parameters)
     }
 }
 
-void periodic_task(void *parameters)
+void display_task(void *parameters)
 {
     TickType_t last_wakeup_time = xTaskGetTickCount();
 
