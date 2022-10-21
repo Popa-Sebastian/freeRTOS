@@ -1,7 +1,7 @@
 /**
   ******************************************************************************
   * @file           : lcd.c
-  * @brief          :
+  * @brief          : Display functions for NOKIA_5110 LCD Display
   * @author         : Sebastian Popa, sebastian.popa@raptor-technologies.ro
   * @date           : Oct 20, 2022
   ******************************************************************************
@@ -33,7 +33,6 @@ static sMenu _menuInstance =
 
 /* Static function prototypes */
 static void _lcd_display_menu(void);
-static void _lcd_display_test(void);
 
 /* Function Declarations */
 void LCD_Init(void)
@@ -46,24 +45,11 @@ void LCD_Display(void)
     _lcd_display_menu();
 }
 
-__unused static void _lcd_display_test(void)
-{
-    static uint32_t count = 0;
-    static char msg[20];
-    LCD_DRIVER_Write_String(0, 0, "0 Hello!");
-
-    sprintf(msg, "1 %lu", count);
-
-    LCD_DRIVER_Write_String(0, 1, msg);
-    count++;
-
-    LCD_DRIVER_Write_String(0, 2, "2");
-    LCD_DRIVER_Write_String(0, 3, "3");
-    LCD_DRIVER_Write_String(0, 4, "abcdefghijklmn");
-    LCD_DRIVER_Write_String(0, 5, "0123456789ABCD");
-}
-
-__unused static void _lcd_display_menu(void)
+/* Static functions */
+/**
+ * @brief displays current menu
+ */
+static void _lcd_display_menu(void)
 {
     // Header Row
     LCD_DRIVER_Write_String(0, 0, _menuInstance.menuText);
@@ -72,6 +58,7 @@ __unused static void _lcd_display_menu(void)
     // Option Rows
     for (uint8_t rowIndex = 0; rowIndex < LCD_MAX_OPTIONS; rowIndex++)
     {
+        // Display Cursor
         if (_menuInstance.cursorPos == rowIndex)
         {
             LCD_DRIVER_Write_String(0, rowIndex + OPTION_ROW_OFFSET, ">");
@@ -81,12 +68,14 @@ __unused static void _lcd_display_menu(void)
             LCD_DRIVER_Write_String(0, rowIndex + OPTION_ROW_OFFSET, " ");
         }
 
+        // Display Option Text
         LCD_DRIVER_Write_String(LCD_CHAR_PX_WIDTH, rowIndex + OPTION_ROW_OFFSET, _menuInstance.optionText[rowIndex]);
     }
 }
 
-sMenu * LCD_GetMenuInstance()
+sMenu* LCD_GetMenuInstance()
 {
     return &_menuInstance;
 }
+
 /* End of File */

@@ -1,7 +1,7 @@
 /**
   ******************************************************************************
   * @file           : lcd.h
-  * @brief          :
+  * @brief          : Display functions for NOKIA_5110 LCD Display
   * @author         : Sebastian Popa, sebastian.popa@raptor-technologies.ro
   * @date           : Oct 20, 2022
   ******************************************************************************
@@ -35,9 +35,21 @@ typedef struct
 } sMenu;
 
 /* Public Function Declaration */
+/**
+ * @brief Initializes LCD Nokia Display
+ */
 void LCD_Init(void);
+
+/**
+ * @brief Prints to Nokia Display the Menu context based on _menuInstance struct
+ */
 void LCD_Display(void);
-sMenu * LCD_GetMenuInstance();
+
+/**
+ * @brief Exports the _menuInstance struct
+ */
+sMenu* LCD_GetMenuInstance();
 
 #endif /* INC_LCD_H_ */
+
 /* End of File */
