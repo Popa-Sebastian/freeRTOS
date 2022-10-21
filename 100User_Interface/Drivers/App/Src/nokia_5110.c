@@ -116,7 +116,7 @@ uint8_t spiOK = 0U;
 void LCD_DRIVER_Init(void) {
   LCD_DRIVER_Reset();
   LCD_DRIVER_Write_Command(0x21);
-  LCD_DRIVER_Write_Command(0xD0);
+  LCD_DRIVER_Write_Command(0xB9);
   LCD_DRIVER_Write_Command(0x20);
   LCD_DRIVER_Write_Command(0x0C);
   LCD_DRIVER_Clear();

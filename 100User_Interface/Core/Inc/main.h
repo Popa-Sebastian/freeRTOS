@@ -70,10 +70,12 @@ void Error_Handler(void);
 #define LCD_RST_GPIO_Port GPIOA
 #define LCD_CE_Pin GPIO_PIN_1
 #define LCD_CE_GPIO_Port GPIOA
-#define USART_TX_Pin GPIO_PIN_2
-#define USART_TX_GPIO_Port GPIOA
-#define USART_RX_Pin GPIO_PIN_3
-#define USART_RX_GPIO_Port GPIOA
+#define BTN_UP_Pin GPIO_PIN_2
+#define BTN_UP_GPIO_Port GPIOA
+#define BTN_UP_EXTI_IRQn EXTI2_IRQn
+#define BTN_DN_Pin GPIO_PIN_3
+#define BTN_DN_GPIO_Port GPIOA
+#define BTN_DN_EXTI_IRQn EXTI3_IRQn
 #define SMPS_EN_Pin GPIO_PIN_4
 #define SMPS_EN_GPIO_Port GPIOA
 #define SMPS_V1_Pin GPIO_PIN_5
@@ -82,6 +84,9 @@ void Error_Handler(void);
 #define SMPS_PG_GPIO_Port GPIOA
 #define SMPS_SW_Pin GPIO_PIN_7
 #define SMPS_SW_GPIO_Port GPIOA
+#define BTN_ENT_Pin GPIO_PIN_4
+#define BTN_ENT_GPIO_Port GPIOC
+#define BTN_ENT_EXTI_IRQn EXTI4_IRQn
 #define LD4_Pin GPIO_PIN_13
 #define LD4_GPIO_Port GPIOB
 #define TMS_Pin GPIO_PIN_13
