@@ -12,6 +12,8 @@
 #include "log.h"
 
 /* Imports */
+extern TaskHandle_t _handle_log_task;
+extern TaskHandle_t _handle_display_task;
 
 /* Static variables */
 static sButtonDebounce _upBtn = {0};
@@ -106,8 +108,14 @@ static void _button_update_cursor_pos(uint16_t GPIO_Pin)
 /* Public Function Declarations */
 void button_press_isr_handler(uint16_t GPIO_Pin)
 {
+    BaseType_t xHigherPriorityTaskWoken;
+
     _button_press_log(GPIO_Pin);
     _button_update_cursor_pos(GPIO_Pin);
+
+    // Notify display task
+    xTaskNotifyFromISR(_handle_display_task, 0, eNoAction, &xHigherPriorityTaskWoken);
+    portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
 
 /* End of File */
