@@ -51,7 +51,7 @@
 /* USER CODE BEGIN PV */
 /* Task handles */
 TaskHandle_t _handle_log_task;
-TaskHandle_t _handle_periodic_task;
+TaskHandle_t _handle_display_task;
 
 /* Queue handles */
 QueueHandle_t _q_log;
@@ -107,7 +107,7 @@ int main(void)
 
   /* Create Tasks */
   BaseType_t status;
-  status = xTaskCreate(periodic_task, "periodic_task", 250, NULL, 2, &_handle_periodic_task);
+  status = xTaskCreate(display_task, "display_task", 250, NULL, 2, &_handle_display_task);
   configASSERT(status == pdPASS);
 
   status = xTaskCreate(log_task, "log_task", 250, NULL, 2, &_handle_log_task);

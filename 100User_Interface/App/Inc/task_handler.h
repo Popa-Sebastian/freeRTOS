@@ -19,7 +19,7 @@
 
 /* Public Function Declaration */
 void log_task(void *parameters);
-void periodic_task(void *parameters);
+void display_task(void *parameters);
 
 #endif // TASK_HANDLER_H_
 /* End of File */
