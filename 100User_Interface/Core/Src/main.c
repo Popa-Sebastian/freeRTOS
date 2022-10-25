@@ -114,13 +114,13 @@ int main(void)
   status = xTaskCreate(display_task, "display_task", 250, NULL, 2, &_handle_display_task);
   configASSERT(status == pdPASS);
 
-  status = xTaskCreate(log_task, "log_task", 250, NULL, 2, &_handle_log_task);
+  status = xTaskCreate(log_task, "log_task", 250, NULL, 1, &_handle_log_task);
   configASSERT(status == pdPASS);
 
   status = xTaskCreate(temp_task, "temp_task", 250, NULL, 2, &_handle_temp_task);
   configASSERT(status == pdPASS);
 
-  status = xTaskCreate(button_task, "button_task", 250, NULL, 2, &_handle_button_task);
+  status = xTaskCreate(button_task, "button_task", 250, NULL, 3, &_handle_button_task);
   configASSERT(status == pdPASS);
 
   /* Create Queues */
