@@ -14,6 +14,7 @@
 /* Imports */
 extern TaskHandle_t _handle_log_task;
 extern TaskHandle_t _handle_display_task;
+extern TaskHandle_t _handle_button_task;
 
 /* Static variables */
 static sButtonDebounce _upBtn = {0};
@@ -34,16 +35,16 @@ static void _button_press_log(uint16_t GPIO_Pin)
 {
     switch (GPIO_Pin) {
     case BTN_UP_Pin:
-        log_msg_fromISR("UP button press");
+        log_msg("UP button press");
         break;
     case BTN_DN_Pin:
-        log_msg_fromISR("DOWN button press");
+        log_msg("DOWN button press");
         break;
     case BTN_ENT_Pin:
-        log_msg_fromISR("ENTER button press");
+        log_msg("ENTER button press");
         break;
     default:
-        log_msg_fromISR("button press not recognized");
+        log_msg("button press not recognized");
         break;
     }
 }
@@ -120,12 +121,15 @@ void button_press_isr_handler(uint16_t GPIO_Pin)
 {
     BaseType_t xHigherPriorityTaskWoken;
 
+    // Notify display task
+    xTaskNotifyFromISR(_handle_button_task, (uint32_t)GPIO_Pin, eSetValueWithOverwrite, &xHigherPriorityTaskWoken);
+    portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+}
+
+void button_handler(uint16_t GPIO_Pin)
+{
     _button_press_log(GPIO_Pin);
     _button_update_cursor_pos(GPIO_Pin);
-
-    // Notify display task
-    xTaskNotifyFromISR(_handle_display_task, 0, eNoAction, &xHigherPriorityTaskWoken);
-    portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
 
 /* End of File */

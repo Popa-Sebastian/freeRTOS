@@ -13,6 +13,7 @@
 #include "task_handler.h"
 #include "lcd.h"
 #include "temperature.h"
+#include "button_handler.h"
 #include "log.h"
 
 /* Imported data */
@@ -60,6 +61,21 @@ void temp_task(void *parameters)
         TEMP_GetTemperature();
         xTaskNotify(_handle_display_task, 0, eNoAction);
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(1000));
+    }
+}
+
+void button_task(void *parameters)
+{
+    uint32_t GPIO_Pin;
+
+    while(1)
+    {
+        xTaskNotifyWait(0, 0, &GPIO_Pin, portMAX_DELAY);
+
+        button_handler((uint16_t)GPIO_Pin);
+
+        // Notify display task
+        xTaskNotify(_handle_display_task, 0, eNoAction);
     }
 }
 
