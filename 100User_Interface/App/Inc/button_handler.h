@@ -26,5 +26,6 @@ typedef struct
 
 /* Public Function Declaration */
 void button_press_isr_handler(uint16_t GPIO_Pin);
+void button_handler(uint16_t GPIO_Pin);
 
 #endif /* INC_BUTTON_HANDLER_H_ */
