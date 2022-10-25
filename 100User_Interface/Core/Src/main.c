@@ -53,6 +53,7 @@
 /* Task handles */
 TaskHandle_t _handle_log_task;
 TaskHandle_t _handle_display_task;
+TaskHandle_t _handle_temp_task;
 
 /* Queue handles */
 QueueHandle_t _q_log;
@@ -113,6 +114,9 @@ int main(void)
   configASSERT(status == pdPASS);
 
   status = xTaskCreate(log_task, "log_task", 250, NULL, 2, &_handle_log_task);
+  configASSERT(status == pdPASS);
+
+  status = xTaskCreate(temp_task, "temp_task", 250, NULL, 2, &_handle_temp_task);
   configASSERT(status == pdPASS);
 
   /* Create Queues */
