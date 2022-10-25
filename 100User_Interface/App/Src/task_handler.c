@@ -12,6 +12,7 @@
 #include "main.h"
 #include "task_handler.h"
 #include "lcd.h"
+#include "temperature.h"
 #include "log.h"
 
 /* Imported data */
@@ -46,6 +47,19 @@ void display_task(void *parameters)
     {
         LCD_Display();
         xTaskNotifyWait(0, 0, NULL, portMAX_DELAY);
+    }
+}
+
+void temp_task(void *parameters)
+{
+    TickType_t xLastWakeTime = xTaskGetTickCount();
+
+    TEMP_Init();
+    while(1)
+    {
+        TEMP_GetTemperature();
+        xTaskNotify(_handle_display_task, 0, eNoAction);
+        vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(1000));
     }
 }
 

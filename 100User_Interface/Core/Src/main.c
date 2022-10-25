@@ -19,6 +19,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "i2c.h"
 #include "spi.h"
 #include "usart.h"
 #include "gpio.h"
@@ -52,6 +53,7 @@
 /* Task handles */
 TaskHandle_t _handle_log_task;
 TaskHandle_t _handle_display_task;
+TaskHandle_t _handle_temp_task;
 
 /* Queue handles */
 QueueHandle_t _q_log;
@@ -101,6 +103,7 @@ int main(void)
   MX_GPIO_Init();
   MX_USART1_UART_Init();
   MX_SPI2_Init();
+  MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
   /* Init User Peripherals */
   LCD_Init();
@@ -111,6 +114,9 @@ int main(void)
   configASSERT(status == pdPASS);
 
   status = xTaskCreate(log_task, "log_task", 250, NULL, 2, &_handle_log_task);
+  configASSERT(status == pdPASS);
+
+  status = xTaskCreate(temp_task, "temp_task", 250, NULL, 2, &_handle_temp_task);
   configASSERT(status == pdPASS);
 
   /* Create Queues */
@@ -173,8 +179,9 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
-  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USART1;
+  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USART1|RCC_PERIPHCLK_I2C1;
   PeriphClkInit.Usart1ClockSelection = RCC_USART1CLKSOURCE_PCLK2;
+  PeriphClkInit.I2c1ClockSelection = RCC_I2C1CLKSOURCE_PCLK1;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
   {
     Error_Handler();
