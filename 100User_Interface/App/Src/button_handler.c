@@ -120,11 +120,8 @@ void button_press_isr_handler(uint16_t GPIO_Pin)
 {
     BaseType_t xHigherPriorityTaskWoken;
 
-    _button_press_log(GPIO_Pin);
-    _button_update_cursor_pos(GPIO_Pin);
-
     // Notify display task
-    xTaskNotifyFromISR(_handle_display_task, 0, eNoAction, &xHigherPriorityTaskWoken);
+    xTaskNotifyFromISR(_handle_button_task, (uint32_t)GPIO_Pin, eSetValueWithOverwrite, &xHigherPriorityTaskWoken);
     portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
 
