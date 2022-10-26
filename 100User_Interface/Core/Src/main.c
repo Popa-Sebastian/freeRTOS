@@ -61,7 +61,6 @@ QueueHandle_t _q_log;
 
 /* Semaphores */
 SemaphoreHandle_t _mutex_display;
-SemaphoreHandle_t _mutex_print;
 
 /* Timer Handles */
 
@@ -134,9 +133,6 @@ int main(void)
   /* Create Semaphores */
   _mutex_display = xSemaphoreCreateMutex();
   configASSERT(_mutex_display != NULL);
-
-  _mutex_print = xSemaphoreCreateMutex();
-  configASSERT(_mutex_print != NULL);
 
   /* Start scheduler */
   vTaskStartScheduler();
