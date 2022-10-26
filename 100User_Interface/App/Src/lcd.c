@@ -16,6 +16,8 @@
 #include "lcd.h"
 #include "log.h"
 
+extern SemaphoreHandle_t _mutex_display;
+
 /* Global Variable Declarations */
 static sMenu _menuInstance =
 {
@@ -51,6 +53,8 @@ void LCD_Display(void)
  */
 static void _lcd_display_menu(void)
 {
+    xSemaphoreTake(_mutex_display, portMAX_DELAY);
+
     // Header Row
     LCD_DRIVER_Write_String(0, 0, _menuInstance.menuText);
     LCD_DRIVER_Write_String((9 * LCD_CHAR_PX_WIDTH ), 0, _menuInstance.temperature);
@@ -71,6 +75,8 @@ static void _lcd_display_menu(void)
         // Display Option Text
         LCD_DRIVER_Write_String(LCD_CHAR_PX_WIDTH, rowIndex + OPTION_ROW_OFFSET, _menuInstance.optionText[rowIndex]);
     }
+
+    xSemaphoreGive(_mutex_display);
 }
 
 sMenu* LCD_GetMenuInstance()
