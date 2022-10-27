@@ -55,35 +55,32 @@ static void _button_press_log(uint16_t GPIO_Pin)
  */
 static bool _is_button_debounced(uint16_t GPIO_Pin)
 {
-    uint32_t tick = xTaskGetTickCount();
-    bool ret = false;
+    sButtonDebounce *current_button = 0;
 
     switch (GPIO_Pin)
     {
     case BTN_UP_Pin:
-    {
-        _upBtn.currentButtonPress = tick;
-        ret = ((_upBtn.currentButtonPress - _upBtn.lastButtonPress) > BUTTON_PRESS_DEBOUNCE_MS);
-        _upBtn.lastButtonPress = _upBtn.currentButtonPress;
-    }
-    break;
+        current_button = &_upBtn;
+        break;
     case BTN_DN_Pin:
-    {
-        _downBtn.currentButtonPress = tick;
-        ret = ((_downBtn.currentButtonPress - _downBtn.lastButtonPress) > BUTTON_PRESS_DEBOUNCE_MS);
-        _downBtn.lastButtonPress = _downBtn.currentButtonPress;
-    }
-    break;
+        current_button = &_downBtn;
+        break;
     case BTN_ENT_Pin:
-    {
-        _enterBtn.currentButtonPress = tick;
-        ret = ((_enterBtn.currentButtonPress - _enterBtn.lastButtonPress) > BUTTON_PRESS_DEBOUNCE_MS);
-        _enterBtn.lastButtonPress = _enterBtn.currentButtonPress;
-    }
-    break;
+        current_button = &_enterBtn;
+        break;
+    default:
+        configASSERT(0);
     }
 
-    return ret;
+    current_button->currentButtonPress = xTaskGetTickCount();
+
+    if((current_button->currentButtonPress - current_button->lastButtonPress) > BUTTON_PRESS_DEBOUNCE_MS)
+    {
+        current_button->lastButtonPress = current_button->currentButtonPress;
+        return true;
+    }
+
+    return false;
 }
 
 /**
@@ -132,8 +129,8 @@ void button_press_isr_handler(uint16_t GPIO_Pin)
 
 void button_handler(uint16_t GPIO_Pin)
 {
-    _button_press_log(GPIO_Pin);
     _button_update_cursor_pos(GPIO_Pin);
+    _button_press_log(GPIO_Pin);
 }
 
 /* End of File */
