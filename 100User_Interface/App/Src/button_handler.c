@@ -15,6 +15,7 @@
 extern TaskHandle_t _handle_log_task;
 extern TaskHandle_t _handle_display_task;
 extern TaskHandle_t _handle_button_task;
+extern SemaphoreHandle_t _mutex_display;
 
 /* Static variables */
 static sButtonDebounce _upBtn = {0};
@@ -90,6 +91,7 @@ static bool _is_button_debounced(uint16_t GPIO_Pin)
  */
 static void _button_update_cursor_pos(uint16_t GPIO_Pin)
 {
+    xSemaphoreTake(_mutex_display, portMAX_DELAY);
     sMenu *menu = LCD_GetMenuInstance();
 
     switch (GPIO_Pin) {
@@ -114,6 +116,8 @@ static void _button_update_cursor_pos(uint16_t GPIO_Pin)
     default:
         break;
     }
+
+    xSemaphoreGive(_mutex_display);
 }
 
 /* Public Function Declarations */

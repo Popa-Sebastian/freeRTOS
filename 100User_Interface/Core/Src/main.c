@@ -59,6 +59,10 @@ TaskHandle_t _handle_button_task;
 /* Queue handles */
 QueueHandle_t _q_log;
 
+/* Semaphores */
+SemaphoreHandle_t _mutex_display;
+SemaphoreHandle_t _mutex_print;
+
 /* Timer Handles */
 
 /* USER CODE END PV */
@@ -126,6 +130,13 @@ int main(void)
   /* Create Queues */
   _q_log = xQueueCreate(100, sizeof(size_t));
   configASSERT(_q_log != NULL);
+
+  /* Create Semaphores */
+  _mutex_display = xSemaphoreCreateMutex();
+  configASSERT(_mutex_display != NULL);
+
+  _mutex_print = xSemaphoreCreateMutex();
+  configASSERT(_mutex_print != NULL);
 
   /* Start scheduler */
   vTaskStartScheduler();

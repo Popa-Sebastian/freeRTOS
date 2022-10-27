@@ -17,6 +17,7 @@
 
 /* Imports */
 extern QueueHandle_t _q_log;
+extern SemaphoreHandle_t _mutex_print;
 
 static char _textmsg[40];
 static char _message[80];
@@ -45,6 +46,8 @@ static void _create_msg(char const* fmt, ...)
 /* Function Declarations */
 void log_msg(char const* fmt, ...)
 {
+    xSemaphoreTake(_mutex_print, portMAX_DELAY);
+
     static char *msg = _message;
 
     va_list arg;
@@ -54,6 +57,8 @@ void log_msg(char const* fmt, ...)
 
     // Send to print task
     xQueueSend(_q_log, &msg, portMAX_DELAY);
+
+    xSemaphoreGive(_mutex_print);
 }
 
 void log_msg_fromISR(char const* fmt, ...)

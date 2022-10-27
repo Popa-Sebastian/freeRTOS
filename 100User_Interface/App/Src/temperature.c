@@ -17,6 +17,8 @@
 #include "lcd.h"
 #include "log.h"
 
+extern SemaphoreHandle_t _mutex_display;
+
 /* Static Variable Declarations */
 
 /* Static function prototypes */
@@ -30,11 +32,19 @@ void TEMP_Init(void)
 void TEMP_GetTemperature(void)
 {
     int16_t outputValue;
-    sMenu* menu = LCD_GetMenuInstance();
-
     TEMPSENSOR_ReadTempData(&outputValue);
+    char current_temperature[6];
+
+    xSemaphoreTake(_mutex_display, portMAX_DELAY);
+
+    sMenu* menu = LCD_GetMenuInstance();
     sprintf(menu->temperature, "%d.%dC", (uint16_t) (outputValue / 10), (uint8_t)(outputValue % 10));
-    log_msg(menu->temperature);
+
+    strcpy(current_temperature, menu->temperature);
+
+    xSemaphoreGive(_mutex_display);
+
+    log_msg(current_temperature);
 }
 
 /* End of File */
