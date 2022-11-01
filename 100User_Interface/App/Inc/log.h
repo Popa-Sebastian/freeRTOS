@@ -8,6 +8,7 @@
 #define APP_LOG_LOG_H_
 
 /* Includes */
+#include <stdbool.h>
 
 /* Public function declaration*/
 /**
@@ -22,6 +23,8 @@ void log_msg(char const* fmt, ...);
  * @brief ISR Safe version of @ref log_msg()
  */
 void log_msg_fromISR(char const* fmt, ...);
+
+void log_setPrintState(bool state);
 
 #endif /* APP_LOG_LOG_H_ */
 
