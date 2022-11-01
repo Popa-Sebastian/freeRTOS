@@ -24,14 +24,26 @@
 #define LCD_CHAR_PX_HEIGHT  8
 
 /* Enums */
+typedef enum
+{
+    MAIN_MENU = 0x00,
+    TEMPERATURE_MENU = 0x01,
+    LED_MENU = 0x02,
+    OP_TIME_MENU = 0x03,
+    LOG_MENU = 0x04,
+
+    MENU_COUNT,
+} eMenuOptions;
 
 /* Global variables */
 typedef struct
 {
+    uint8_t menuState;
     char menuText[LCD_MAX_LENGTH + 1];
     char temperature[TEMP_MAX_SIZE + 1];
     char optionText[LCD_MAX_OPTIONS][LCD_MAX_LENGTH];
     uint8_t cursorPos;
+    uint8_t menuMaxOptions;
 } sMenu;
 
 /* Public Function Declaration */
@@ -49,6 +61,8 @@ void LCD_Display(void);
  * @brief Exports the _menuInstance struct
  */
 sMenu* LCD_GetMenuInstance();
+
+void LCD_SwitchMenu(eMenuOptions option);
 
 #endif /* INC_LCD_H_ */
 

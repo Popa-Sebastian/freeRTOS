@@ -95,24 +95,102 @@ static void _button_update_cursor_pos(uint16_t GPIO_Pin)
     case BTN_UP_Pin:
         if (_is_button_debounced(GPIO_Pin))
         {
-            menu->cursorPos = menu->cursorPos > 0 ? menu->cursorPos - 1 : LCD_MAX_OPTIONS - 1;
+            menu->cursorPos = menu->cursorPos > 0 ? menu->cursorPos - 1 : menu->menuMaxOptions - 1;
         }
         break;
     case BTN_DN_Pin:
         if (_is_button_debounced(GPIO_Pin))
         {
-            menu->cursorPos = (menu->cursorPos + 1) % LCD_MAX_OPTIONS;
-        }
-        break;
-    case BTN_ENT_Pin:
-        if (_is_button_debounced(GPIO_Pin))
-        {
-            __NOP();
+            menu->cursorPos = (menu->cursorPos + 1) % menu->menuMaxOptions;
         }
         break;
     default:
         break;
     }
+
+    xSemaphoreGive(_mutex_display);
+}
+
+static void _button_context_handle(void)
+{
+    xSemaphoreTake(_mutex_display, portMAX_DELAY);
+
+    sMenu *menu = LCD_GetMenuInstance();
+
+    switch(menu->menuState)
+    {
+    case MAIN_MENU:
+        switch(menu->cursorPos)
+        {
+        case 0:
+            LCD_SwitchMenu(TEMPERATURE_MENU);
+            break;
+        case 1:
+            LCD_SwitchMenu(LED_MENU);
+            break;
+        case 2:
+            LCD_SwitchMenu(OP_TIME_MENU);
+            break;
+        case 3:
+            LCD_SwitchMenu(LOG_MENU);
+            break;
+        default:
+            break;
+        }
+    break;
+    case TEMPERATURE_MENU:
+        switch(menu->cursorPos)
+        {
+        case 0:
+        case 1:
+            break;
+        case 2:
+            LCD_SwitchMenu(MAIN_MENU);
+            break;
+        default:
+            break;
+        }
+    break;
+    case LED_MENU:
+        switch(menu->cursorPos)
+        {
+        case 0:
+        case 1:
+        case 2:
+            break;
+        case 3:
+            LCD_SwitchMenu(MAIN_MENU);
+            break;
+        default:
+            break;
+        }
+    break;
+    case OP_TIME_MENU:
+        switch(menu->cursorPos)
+        {
+        case 0:
+            break;
+        case 1:
+            LCD_SwitchMenu(MAIN_MENU);
+            break;
+        default:
+            break;
+        }
+    break;
+    case LOG_MENU:
+        switch(menu->cursorPos)
+        {
+        case 0:
+        case 1:
+            break;
+        case 2:
+            LCD_SwitchMenu(MAIN_MENU);
+            break;
+        default:
+            break;
+        }
+    break;
+    } // SWITCH: MENU STATE
 
     xSemaphoreGive(_mutex_display);
 }
@@ -129,7 +207,20 @@ void button_press_isr_handler(uint16_t GPIO_Pin)
 
 void button_handler(uint16_t GPIO_Pin)
 {
-    _button_update_cursor_pos(GPIO_Pin);
+    switch (GPIO_Pin)
+    {
+    case BTN_UP_Pin:
+    case BTN_DN_Pin:
+        _button_update_cursor_pos(GPIO_Pin);
+        break;
+    case BTN_ENT_Pin:
+        _button_context_handle();
+        break;
+    default:
+        configASSERT(0);
+        break;
+    }
+
     _button_press_log(GPIO_Pin);
 }
 
