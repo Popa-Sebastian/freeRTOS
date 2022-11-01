@@ -26,6 +26,7 @@ typedef enum
 /* Public Function Declaration */
 void TEMP_Init(void);
 void TEMP_GetTemperature(void);
+void TEMP_SetTemperatureUnit(eTempUnit unit);
 
 #endif /* INC_TEMPERATURE_H_ */
 

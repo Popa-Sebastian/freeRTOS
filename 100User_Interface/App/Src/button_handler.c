@@ -9,6 +9,7 @@
 #include "main.h"
 #include "button_handler.h"
 #include "lcd.h"
+#include "temperature.h"
 #include "log.h"
 
 /* Imports */
@@ -142,7 +143,10 @@ static void _button_context_handle(void)
         switch(menu->cursorPos)
         {
         case 0:
+            TEMP_SetTemperatureUnit(TEMP_CELSIUS);
+            break;
         case 1:
+            TEMP_SetTemperatureUnit(TEMP_FARENHEIT);
             break;
         case 2:
             LCD_SwitchMenu(MAIN_MENU);
