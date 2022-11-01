@@ -90,6 +90,12 @@ void Error_Handler(void);
 #define BTN_ENT_EXTI_IRQn EXTI4_IRQn
 #define LD4_Pin GPIO_PIN_13
 #define LD4_GPIO_Port GPIOB
+#define LEDG_Pin GPIO_PIN_6
+#define LEDG_GPIO_Port GPIOC
+#define LEDY_Pin GPIO_PIN_8
+#define LEDY_GPIO_Port GPIOC
+#define LEDR_Pin GPIO_PIN_9
+#define LEDR_GPIO_Port GPIOC
 #define TMS_Pin GPIO_PIN_13
 #define TMS_GPIO_Port GPIOA
 #define TCK_Pin GPIO_PIN_14
