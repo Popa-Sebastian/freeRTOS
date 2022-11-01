@@ -42,12 +42,12 @@ void TEMP_GetTemperature(void)
     sMenu* menu = LCD_GetMenuInstance();
     if(_tempUnit == TEMP_CELSIUS)
     {
-        sprintf(menu->temperature, "%d.%dC", (uint16_t) (outputValue / 10), (uint8_t)(outputValue % 10));
+        sprintf(menu->temperature, "%02d.%dC", (uint16_t) (outputValue / 10), (uint8_t)(outputValue % 10));
     }
     else
     {
         uint16_t farenheitVal = (outputValue * 9 / 5) + 320;
-        sprintf(menu->temperature, "%dF", (uint16_t) (farenheitVal / 10));
+        sprintf(menu->temperature, "%03dF", (uint16_t) (farenheitVal / 10));
     }
 
     strcpy(current_temperature, menu->temperature);
