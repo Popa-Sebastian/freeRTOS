@@ -14,6 +14,7 @@
 #include "lcd.h"
 #include "temperature.h"
 #include "button_handler.h"
+#include "op_time.h"
 #include "log.h"
 
 /* Imported data */
@@ -76,6 +77,19 @@ void button_task(void *parameters)
 
         // Notify display task
         xTaskNotify(_handle_display_task, 0, eNoAction);
+    }
+}
+
+void optime_task(void *parameters)
+{
+    vTaskSuspend(NULL);
+    TickType_t xLastWakeTime = xTaskGetTickCount();
+
+    while(1)
+    {
+        OPTIME_UpdateOpTime();
+        xTaskNotify(_handle_display_task, 0, eNoAction);
+        vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(100));
     }
 }
 
