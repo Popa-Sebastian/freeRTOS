@@ -14,12 +14,14 @@
 
 #include "main.h"
 #include "temp_sensor.h"
+#include "temperature.h"
 #include "lcd.h"
 #include "log.h"
 
 extern SemaphoreHandle_t _mutex_display;
 
 /* Static Variable Declarations */
+static eTempUnit _tempUnit = TEMP_CELSIUS;
 
 /* Static function prototypes */
 
@@ -45,6 +47,16 @@ void TEMP_GetTemperature(void)
     xSemaphoreGive(_mutex_display);
 
     log_msg(current_temperature);
+}
+
+void TEMP_SetTemperatureUnit(eTempUnit unit)
+{
+    if (unit > TEMP_FARENHEIT)
+    {
+        return;
+    }
+
+    _tempUnit = unit;
 }
 
 /* End of File */

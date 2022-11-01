@@ -15,6 +15,11 @@
 /* Defines */
 
 /* Enums */
+typedef enum
+{
+    TEMP_CELSIUS = 0x00,
+    TEMP_FARENHEIT = 0x01,
+} eTempUnit;
 
 /* Global variables */
 
