@@ -16,6 +16,7 @@
 extern TaskHandle_t _handle_log_task;
 extern TaskHandle_t _handle_display_task;
 extern TaskHandle_t _handle_button_task;
+extern TaskHandle_t _handle_optime_task;
 extern SemaphoreHandle_t _mutex_display;
 
 /* Static variables */
@@ -131,6 +132,7 @@ static void _button_context_handle(void)
             break;
         case 2:
             LCD_SwitchMenu(OP_TIME_MENU);
+            vTaskResume(_handle_optime_task);
             break;
         case 3:
             LCD_SwitchMenu(LOG_MENU);
@@ -175,6 +177,7 @@ static void _button_context_handle(void)
         case 0:
             break;
         case 1:
+            vTaskSuspend(_handle_optime_task);
             LCD_SwitchMenu(MAIN_MENU);
             break;
         default:
