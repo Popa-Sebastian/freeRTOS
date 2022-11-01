@@ -17,7 +17,10 @@ extern TaskHandle_t _handle_log_task;
 extern TaskHandle_t _handle_display_task;
 extern TaskHandle_t _handle_button_task;
 extern TaskHandle_t _handle_optime_task;
+
 extern SemaphoreHandle_t _mutex_display;
+
+extern QueueHandle_t _q_log;
 
 /* Static variables */
 static sButtonDebounce _upBtn = {0};
@@ -188,7 +191,13 @@ static void _button_context_handle(void)
         switch(menu->cursorPos)
         {
         case 0:
+            xQueueReset(_q_log);
+            log_setPrintState(true);
+            vTaskResume(_handle_log_task);
+            break;
         case 1:
+            log_setPrintState(false);
+            vTaskSuspend(_handle_log_task);
             break;
         case 2:
             LCD_SwitchMenu(MAIN_MENU);
