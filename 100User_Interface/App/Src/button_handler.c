@@ -118,6 +118,11 @@ static void _button_update_cursor_pos(uint16_t GPIO_Pin)
 
 static void _button_context_handle(void)
 {
+    if(!_is_button_debounced(BTN_ENT_Pin))
+    {
+        return;
+    }
+
     xSemaphoreTake(_mutex_display, portMAX_DELAY);
 
     sMenu *menu = LCD_GetMenuInstance();
