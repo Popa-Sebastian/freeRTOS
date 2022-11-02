@@ -17,7 +17,7 @@
 
 /* Imports */
 extern QueueHandle_t _q_log;
-extern SemaphoreHandle_t _mutex_print;
+extern SemaphoreHandle_t _mutex_log;
 
 static char _textmsg[40];
 static char _message[80];
@@ -26,7 +26,6 @@ static bool _isPrintEnabled = true;
 
 static void _create_msg(char const* fmt, ...)
 {
-
     // Get time stamp
     TickType_t tick = xTaskGetTickCount();
     uint32_t ms = tick % 1000;
@@ -51,7 +50,7 @@ void log_msg(char const* fmt, ...)
 {
     if(_isPrintEnabled)
     {
-        xSemaphoreTake(_mutex_print, portMAX_DELAY);
+        xSemaphoreTake(_mutex_log, portMAX_DELAY);
 
         static char *msg = _message;
 
@@ -63,7 +62,7 @@ void log_msg(char const* fmt, ...)
         // Send to print task
         xQueueSend(_q_log, &msg, portMAX_DELAY);
 
-        xSemaphoreGive(_mutex_print);
+        xSemaphoreGive(_mutex_log);
     }
 }
 
