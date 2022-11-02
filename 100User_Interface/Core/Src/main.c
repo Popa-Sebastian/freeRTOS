@@ -62,7 +62,7 @@ QueueHandle_t _q_log;
 
 /* Semaphores */
 SemaphoreHandle_t _mutex_display;
-SemaphoreHandle_t _mutex_print;
+SemaphoreHandle_t _mutex_log;
 
 /* Timer Handles */
 
@@ -116,7 +116,7 @@ int main(void)
 
   /* Create Tasks */
   BaseType_t status;
-  status = xTaskCreate(display_task, "display_task", 250, NULL, 2, &_handle_display_task);
+  status = xTaskCreate(display_task, "display_task", 250, NULL, 3, &_handle_display_task);
   configASSERT(status == pdPASS);
 
   status = xTaskCreate(log_task, "log_task", 250, NULL, 1, &_handle_log_task);
@@ -128,7 +128,7 @@ int main(void)
   status = xTaskCreate(button_task, "button_task", 250, NULL, 3, &_handle_button_task);
   configASSERT(status == pdPASS);
 
-  status = xTaskCreate(optime_task, "optime_task", 250, NULL, 3, &_handle_optime_task);
+  status = xTaskCreate(optime_task, "optime_task", 250, NULL, 2, &_handle_optime_task);
   configASSERT(status == pdPASS);
 
   /* Create Queues */
@@ -139,8 +139,8 @@ int main(void)
   _mutex_display = xSemaphoreCreateMutex();
   configASSERT(_mutex_display != NULL);
 
-  _mutex_print = xSemaphoreCreateMutex();
-  configASSERT(_mutex_print != NULL);
+  _mutex_log = xSemaphoreCreateMutex();
+  configASSERT(_mutex_log != NULL);
 
   /* Start scheduler */
   vTaskStartScheduler();
